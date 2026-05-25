@@ -1,0 +1,128 @@
+/* Container centers everything */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f7f7f7;
+}
+
+h1 {
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.status {
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(3, 60px);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.square {
+  width: 60px;
+  height: 60px;
+  font-size: 2rem;
+  font-weight: bold;
+  background: #fff;
+  border: 2px solid #bbb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+}
+
+.square:hover:not(:disabled) {
+  background: #e0e7ff;
+  border-color: #6366f1;
+}
+
+.square:disabled {
+  cursor: not-allowed;
+  background: #f3f4f6;
+  color: #aaa;
+}
+
+
+/* Player name input styles */
+.player-names {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+.player-names label {
+  font-size: 1rem;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.name-input {
+  margin-left: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #bbb;
+  font-size: 1rem;
+  width: 80px;
+}
+
+/* Scoreboard styles */
+.scoreboard {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+/* Controls (reset/undo) */
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.reset-btn, .undo-btn {
+  padding: 8px 20px;
+  font-size: 1rem;
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.reset-btn:hover, .undo-btn:hover {
+  background: #4f46e5;
+}
+.undo-btn:disabled {
+  background: #bbb;
+  color: #eee;
+  cursor: not-allowed;
+}
+
+@media (max-width: 500px) {
+  .board {
+    grid-template-columns: repeat(3, 40px);
+    grid-template-rows: repeat(3, 40px);
+    gap: 6px;
+  }
+  .square {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+  .reset-btn {
+    font-size: 0.9rem;
+    padding: 7px 14px;
+  }
+}
