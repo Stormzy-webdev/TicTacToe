@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import "./App.css";
 
 const initialState = {
@@ -106,9 +106,10 @@ function gameReducer(state, action) {
 }
 
 function Square({ value, onClick, isDisabled, className = "" }) {
+  const valueClass = value ? `filled value-${value.toLowerCase()}` : "";
   return (
     <button
-      className={`square ${className}`.trim()}
+      className={`square ${valueClass} ${className}`.trim()}
       onClick={onClick}
       disabled={isDisabled}
       aria-label={value ? `Cell filled with ${value}` : "Empty cell"}
@@ -152,21 +153,19 @@ function Board({ board, onSquareClick, isGameOver, winningLine }) {
       {lineCoords && (
         <svg className="win-line" viewBox="0 0 100 100" preserveAspectRatio="none">
           <line
+            className="win-line-outline"
             x1={lineCoords.x1}
             y1={lineCoords.y1}
             x2={lineCoords.x2}
             y2={lineCoords.y2}
-            stroke="#000000"
-            strokeWidth="3.6"
             strokeLinecap="round"
           />
           <line
+            className="win-line-inner"
             x1={lineCoords.x1}
             y1={lineCoords.y1}
             x2={lineCoords.x2}
             y2={lineCoords.y2}
-            stroke="#ffffff"
-            strokeWidth="2.2"
             strokeLinecap="round"
           />
         </svg>
@@ -177,7 +176,9 @@ function Board({ board, onSquareClick, isGameOver, winningLine }) {
 
 export default function App() {
   const [state, dispatch] = useReducer(gameReducer, initialState);
+  const [toast, setToast] = useState("");
   const { board, xIsNext, winner, winningLine, isDraw, history, scores, playerNames } = state;
+  const currentPlayer = xIsNext ? "X" : "O";
 
   let status;
   if (winner) {
@@ -204,9 +205,24 @@ export default function App() {
     dispatch({ type: "SET_PLAYER_NAME", player, name: e.target.value });
   }
 
+  useEffect(() => {
+    if (winner) {
+      setToast(`${playerNames[winner]} wins!`);
+      const timer = setTimeout(() => setToast(""), 2500);
+      return () => clearTimeout(timer);
+    }
+    if (isDraw) {
+      setToast("It's a draw!");
+      const timer = setTimeout(() => setToast(""), 2500);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [winner, isDraw, playerNames]);
+
   return (
     <div className="container">
       <h1>TicTacToe</h1>
+      {toast && <div className="toast">{toast}</div>}
 
       <div className="player-names">
         <label>
@@ -235,6 +251,11 @@ export default function App() {
       </div>
 
       <div className="status">{status}</div>
+      {!winner && !isDraw && (
+        <div className="turn-badge">
+          Turn: <strong>{playerNames[currentPlayer]}</strong> ({currentPlayer})
+        </div>
+      )}
 
       <div className="scoreboard">
         <span>{playerNames.X}: {scores.X}</span>
