@@ -1,86 +1,18 @@
 import React, { useReducer } from "react";
 import "./App.css";
 
-// Initial state for the game, including move history, scores, and player names
 const initialState = {
-  board: Array(9).fill(null), // 3x3 board as a flat array
-  xIsNext: true, // true = Player 1's turn, false = Player 2's turn
-  winner: null, // 'X', 'O', or null
-  isDraw: false, // true if draw
-  history: [], // stores previous board states for undo
-  scores: { X: 0, O: 0, draws: 0 }, // scoreboard
-  playerNames: { X: "Player 1", O: "Player 2" } // player names
+  board: Array(9).fill(null),
+  xIsNext: true,
+  winner: null,
+  winningLine: null,
+  isDraw: false,
+  history: [],
+  scores: { X: 0, O: 0, draws: 0 },
+  playerNames: { X: "Player 1", O: "Player 2" }
 };
 
-// Reducer function to manage game state
-function gameReducer(state, action) {
-  switch (action.type) {
-    // Handle a player move
-    case "MAKE_MOVE": {
-      const { index } = action;
-      if (state.board[index] || state.winner) return state;
-      const newBoard = state.board.slice();
-      newBoard[index] = state.xIsNext ? "X" : "O";
-      const winner = calculateWinner(newBoard);
-      const isDraw = !winner && newBoard.every(cell => cell);
-      let newScores = { ...state.scores };
-      // Update scores if game ends
-      if (winner) newScores[winner] += 1;
-      else if (isDraw) newScores.draws += 1;
-      return {
-        ...state,
-        history: [
-          {
-            board: state.board,
-            xIsNext: state.xIsNext,
-            winner: state.winner,
-            isDraw: state.isDraw
-          },
-          ...state.history
-        ],
-        board: newBoard,
-        xIsNext: !state.xIsNext,
-        winner,
-        isDraw,
-        scores: newScores
-      };
-    }
-    // Undo the last move
-    case "UNDO": {
-      if (state.history.length === 0) return state;
-      const [last, ...rest] = state.history;
-      return {
-        ...state,
-        ...last,
-        history: rest
-      };
-    }
-    // Reset the game (but keep scores and names)
-    case "RESET":
-      return {
-        ...initialState,
-        scores: { ...state.scores },
-        playerNames: { ...state.playerNames }
-      };
-    // Set player names
-    case "SET_PLAYER_NAME": {
-      const { player, name } = action;
-      return {
-        ...state,
-        playerNames: {
-          ...state.playerNames,
-          [player]: name || (player === "X" ? "Player 1" : "Player 2")
-        }
-      };
-    }
-    default:
-      return state;
-  }
-}
-
-// Helper function to check for a winner
 function calculateWinner(board) {
-  // All possible winning combinations
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -91,20 +23,92 @@ function calculateWinner(board) {
     [0, 4, 8],
     [2, 4, 6]
   ];
-  for (let line of lines) {
-    const [a, b, c] = line;
+
+  for (const [a, b, c] of lines) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return board[a];
+      return { winner: board[a], line: [a, b, c] };
     }
   }
+
   return null;
 }
 
-// Square component: represents a single cell
-function Square({ value, onClick, isDisabled }) {
+function gameReducer(state, action) {
+  switch (action.type) {
+    case "MAKE_MOVE": {
+      const { index } = action;
+      if (state.board[index] || state.winner || state.isDraw) return state;
+
+      const newBoard = state.board.slice();
+      newBoard[index] = state.xIsNext ? "X" : "O";
+
+      const winnerObj = calculateWinner(newBoard);
+      const winner = winnerObj ? winnerObj.winner : null;
+      const winningLine = winnerObj ? winnerObj.line : null;
+      const isDraw = !winner && newBoard.every(cell => cell);
+
+      const newScores = { ...state.scores };
+      if (winner) newScores[winner] += 1;
+      if (isDraw) newScores.draws += 1;
+
+      return {
+        ...state,
+        history: [
+          {
+            board: state.board,
+            xIsNext: state.xIsNext,
+            winner: state.winner,
+            winningLine: state.winningLine,
+            isDraw: state.isDraw
+          },
+          ...state.history
+        ],
+        board: newBoard,
+        xIsNext: !state.xIsNext,
+        winner,
+        winningLine,
+        isDraw,
+        scores: newScores
+      };
+    }
+
+    case "UNDO": {
+      if (state.history.length === 0) return state;
+      const [last, ...rest] = state.history;
+      return {
+        ...state,
+        ...last,
+        history: rest
+      };
+    }
+
+    case "RESET":
+      return {
+        ...initialState,
+        scores: { ...state.scores },
+        playerNames: { ...state.playerNames }
+      };
+
+    case "SET_PLAYER_NAME": {
+      const { player, name } = action;
+      return {
+        ...state,
+        playerNames: {
+          ...state.playerNames,
+          [player]: name || (player === "X" ? "Player 1" : "Player 2")
+        }
+      };
+    }
+
+    default:
+      return state;
+  }
+}
+
+function Square({ value, onClick, isDisabled, className = "" }) {
   return (
     <button
-      className="square"
+      className={`square ${className}`.trim()}
       onClick={onClick}
       disabled={isDisabled}
       aria-label={value ? `Cell filled with ${value}` : "Empty cell"}
@@ -114,30 +118,67 @@ function Square({ value, onClick, isDisabled }) {
   );
 }
 
-// Board component: renders the 3x3 grid
-function Board({ board, onSquareClick, isGameOver }) {
+function getLineCoords(line) {
+  if (!line) return null;
+  const pos = [
+    [16.67, 16.67], [50, 16.67], [83.33, 16.67],
+    [16.67, 50], [50, 50], [83.33, 50],
+    [16.67, 83.33], [50, 83.33], [83.33, 83.33]
+  ];
+  const [a, , c] = line;
+  return {
+    x1: pos[a][0],
+    y1: pos[a][1],
+    x2: pos[c][0],
+    y2: pos[c][1]
+  };
+}
+
+function Board({ board, onSquareClick, isGameOver, winningLine }) {
+  const lineCoords = getLineCoords(winningLine);
   return (
-    <div className="board">
-      {/* Render 9 squares */}
-      {board.map((value, idx) => (
-        <Square
-          key={idx}
-          value={value}
-          onClick={() => onSquareClick(idx)}
-          isDisabled={!!value || isGameOver}
-        />
-      ))}
+    <div className="board-wrapper">
+      <div className="board">
+        {board.map((value, idx) => (
+          <Square
+            key={idx}
+            value={value}
+            onClick={() => onSquareClick(idx)}
+            isDisabled={isGameOver || !!value}
+            className={winningLine?.includes(idx) ? "winning-square" : ""}
+          />
+        ))}
+      </div>
+      {lineCoords && (
+        <svg className="win-line" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <line
+            x1={lineCoords.x1}
+            y1={lineCoords.y1}
+            x2={lineCoords.x2}
+            y2={lineCoords.y2}
+            stroke="#000000"
+            strokeWidth="3.6"
+            strokeLinecap="round"
+          />
+          <line
+            x1={lineCoords.x1}
+            y1={lineCoords.y1}
+            x2={lineCoords.x2}
+            y2={lineCoords.y2}
+            stroke="#ffffff"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          />
+        </svg>
+      )}
     </div>
   );
 }
 
-// Main App component
 export default function App() {
-  // useReducer for all game state
   const [state, dispatch] = useReducer(gameReducer, initialState);
-  const { board, xIsNext, winner, isDraw, history, scores, playerNames } = state;
+  const { board, xIsNext, winner, winningLine, isDraw, history, scores, playerNames } = state;
 
-  // Status message logic
   let status;
   if (winner) {
     status = `Winner: ${playerNames[winner]}`;
@@ -147,22 +188,18 @@ export default function App() {
     status = `Next Player: ${xIsNext ? playerNames.X : playerNames.O}`;
   }
 
-  // Handle square click
   function handleSquareClick(idx) {
     dispatch({ type: "MAKE_MOVE", index: idx });
   }
 
-  // Handle reset
   function handleReset() {
     dispatch({ type: "RESET" });
   }
 
-  // Handle undo
   function handleUndo() {
     dispatch({ type: "UNDO" });
   }
 
-  // Handle player name change
   function handleNameChange(player, e) {
     dispatch({ type: "SET_PLAYER_NAME", player, name: e.target.value });
   }
@@ -170,7 +207,7 @@ export default function App() {
   return (
     <div className="container">
       <h1>TicTacToe</h1>
-      {/* Player name inputs */}
+
       <div className="player-names">
         <label>
           Player 1:
@@ -183,6 +220,7 @@ export default function App() {
             aria-label="Player 1 name"
           />
         </label>
+
         <label>
           Player 2:
           <input
@@ -195,17 +233,22 @@ export default function App() {
           />
         </label>
       </div>
-      {/* Status message */}
+
       <div className="status">{status}</div>
-      {/* Scoreboard */}
+
       <div className="scoreboard">
         <span>{playerNames.X}: {scores.X}</span>
         <span>{playerNames.O}: {scores.O}</span>
         <span>Draws: {scores.draws}</span>
       </div>
-      {/* Game board */}
-      <Board board={board} onSquareClick={handleSquareClick} isGameOver={!!winner || isDraw} />
-      {/* Controls */}
+
+      <Board
+        board={board}
+        onSquareClick={handleSquareClick}
+        isGameOver={!!winner || isDraw}
+        winningLine={winningLine}
+      />
+
       <div className="controls">
         <button className="reset-btn" onClick={handleReset}>
           Restart
