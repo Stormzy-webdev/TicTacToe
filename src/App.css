@@ -1,3 +1,22 @@
+
+/* Dark theme colors */
+:root {
+  --bg-main: #18181b;
+  --bg-board: #232336;
+  --text-main: #f3f4f6;
+  --text-secondary: #a1a1aa;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --square-bg: #27273a;
+  --square-border: #6366f1;
+  --square-hover: #37376a;
+  --btn-bg: #6366f1;
+  --btn-hover: #4f46e5;
+  --btn-disabled: #444;
+  --input-bg: #232336;
+  --input-border: #6366f1;
+}
+
 /* Container centers everything */
 .container {
   display: flex;
@@ -5,19 +24,20 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #f7f7f7;
+  background: var(--bg-main);
 }
 
 h1 {
   margin-bottom: 16px;
-  color: #333;
+  color: var(--accent);
+  letter-spacing: 1px;
 }
 
 .status {
   margin-bottom: 12px;
   font-size: 1.2rem;
   font-weight: 500;
-  color: #444;
+  color: var(--text-main);
 }
 
 .board {
@@ -26,6 +46,10 @@ h1 {
   grid-template-rows: repeat(3, 60px);
   gap: 8px;
   margin-bottom: 16px;
+  background: var(--bg-board);
+  border-radius: 12px;
+  box-shadow: 0 2px 16px #0004;
+  padding: 12px 10px 10px 12px;
 }
 
 .square {
@@ -33,26 +57,28 @@ h1 {
   height: 60px;
   font-size: 2rem;
   font-weight: bold;
-  background: #fff;
-  border: 2px solid #bbb;
+  background: var(--square-bg);
+  border: 2px solid var(--square-border);
   border-radius: 8px;
+  color: var(--text-main);
   cursor: pointer;
   transition: background 0.2s, border 0.2s;
 }
 
 .square:hover:not(:disabled) {
-  background: #e0e7ff;
-  border-color: #6366f1;
+  background: var(--square-hover);
+  border-color: var(--accent);
 }
 
 .square:disabled {
   cursor: not-allowed;
-  background: #f3f4f6;
-  color: #aaa;
+  background: #232336;
+  color: #555;
 }
 
 
 /* Player name input styles */
+
 .player-names {
   display: flex;
   gap: 16px;
@@ -60,7 +86,7 @@ h1 {
 }
 .player-names label {
   font-size: 1rem;
-  color: #555;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -69,22 +95,26 @@ h1 {
   margin-left: 4px;
   padding: 3px 8px;
   border-radius: 4px;
-  border: 1px solid #bbb;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-main);
   font-size: 1rem;
   width: 80px;
 }
 
 /* Scoreboard styles */
+
 .scoreboard {
   display: flex;
   gap: 18px;
   margin-bottom: 10px;
   font-size: 1.1rem;
-  color: #333;
+  color: var(--text-main);
   font-weight: 500;
 }
 
 /* Controls (reset/undo) */
+
 .controls {
   display: flex;
   gap: 10px;
@@ -94,7 +124,7 @@ h1 {
 .reset-btn, .undo-btn {
   padding: 8px 20px;
   font-size: 1rem;
-  background: #6366f1;
+  background: var(--btn-bg);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -102,11 +132,11 @@ h1 {
   transition: background 0.2s;
 }
 .reset-btn:hover, .undo-btn:hover {
-  background: #4f46e5;
+  background: var(--btn-hover);
 }
 .undo-btn:disabled {
-  background: #bbb;
-  color: #eee;
+  background: var(--btn-disabled);
+  color: #888;
   cursor: not-allowed;
 }
 
@@ -115,13 +145,14 @@ h1 {
     grid-template-columns: repeat(3, 40px);
     grid-template-rows: repeat(3, 40px);
     gap: 6px;
+    padding: 8px 6px 6px 8px;
   }
   .square {
     width: 40px;
     height: 40px;
     font-size: 1.3rem;
   }
-  .reset-btn {
+  .reset-btn, .undo-btn {
     font-size: 0.9rem;
     padding: 7px 14px;
   }
