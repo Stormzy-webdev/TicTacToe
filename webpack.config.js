@@ -1,5 +1,7 @@
+
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.js',
@@ -30,6 +32,12 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
     }),
+    // Copy _redirects file from public to dist for Netlify SPA routing
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'public/_redirects', to: '' }
+      ]
+    })
   ],
   devServer: {
     static: './dist',
